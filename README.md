@@ -7,6 +7,12 @@ A guided terminal toolkit for indicator research, DNS records, offline JWT inspe
 
 [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md)
 
+## Interface overview
+
+![ThreatHawk dashboard and complete module directory](docs/images/interface-overview.png)
+
+The dashboard and all 22 modules, shown with a locally configured portrait. Configured-key counts show presence only; no API key values appear in this screenshot.
+
 ## Start
 
 Use Python 3.10 or later:
@@ -28,7 +34,7 @@ The application reads environment variables. It does not copy or auto-execute co
 
 ## Interface
 
-The terminal dashboard shows the active module, configured-key count and completed lookups. Cyan and magenta panels separate navigation and results. A live spinner appears during interactive lookups, followed by elapsed time. Key presence is not proof of provider access. Optional portrait artwork can be configured locally with `THREATHAWK_LOGO`; personal artwork is not included in the distribution.
+The terminal dashboard shows the active module, configured-key count and completed lookups. Cyan and magenta panels separate navigation and results. A live spinner appears during interactive lookups, followed by elapsed time. Key presence is not proof of provider access. Optional portrait artwork can be configured locally with `THREATHAWK_LOGO`; the runtime portrait file is not included. The overview screenshot shows an example with a locally configured portrait.
 
 ## Workflow
 
