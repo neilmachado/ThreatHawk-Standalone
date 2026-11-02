@@ -1,9 +1,9 @@
 # ThreatHawk — Standalone Edition
 
-Created and maintained by **Neil Machado**, with AI-assisted implementation.
+Created and maintained by **Neil Machado**.
 A guided terminal toolkit for indicator research, DNS records, offline JWT inspection and bounded website observations. Version 1.0.0 provides 22 numbered capabilities.
 
-[Migration guide](docs/MIGRATION.md) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md)
+[Security](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md)
 
 ## Start
 
@@ -22,7 +22,7 @@ threathawk
 
 You can also run `threathawk-new` or `python -m hawk`. All three commands launch the same interface.
 
-The application reads environment variables. It does not copy or auto-execute configuration files. The separately supplied local launcher sources Neil's existing `work/argus.env`; no keys are included here. The `.env.example` contains names only. If your file uses assignments without `export`, use `set -a` before sourcing and `set +a` afterwards.
+The application reads environment variables. It does not copy or auto-execute configuration files. The separately supplied local launcher reads your private environment file; no keys are included here. The `.env.example` contains names only. If your file uses assignments without `export`, use `set -a` before sourcing and `set +a` afterwards.
 
 ## Workflow
 
@@ -60,4 +60,4 @@ Tests use synthetic responses and injected clients; they do not consume provider
 
 ## License and attribution
 
-New project source is offered under MIT; see LICENSE. Third-party libraries and services remain their authors' work and retain their own licenses/terms. This release is separate from the earlier Argus-derived distribution; that earlier distribution retains its original notices. No claim of legal certification or exclusive ownership of underlying libraries or general techniques is made.
+New project source is offered under MIT; see LICENSE. Third-party libraries and services remain their authors' work and retain their own licenses/terms. No claim of legal certification or exclusive ownership of underlying libraries or general techniques is made.
