@@ -3,6 +3,8 @@
 Created and maintained by **Neil Machado**, with AI-assisted implementation.
 A guided terminal toolkit for indicator research, DNS records, offline JWT inspection and bounded website observations. Version 1.0.0 provides 22 numbered capabilities.
 
+[Migration guide](docs/MIGRATION.md) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md)
+
 ## Start
 
 Use Python 3.10 or later:
@@ -15,8 +17,10 @@ source .venv/bin/activate
 pip install .
 # Load your existing trusted private environment file (outside this project):
 source /path/to/your/private-config.env
-threathawk-new
+threathawk
 ```
+
+You can also run `threathawk-new` or `python -m hawk`. All three commands launch the same interface.
 
 The application reads environment variables. It does not copy or auto-execute configuration files. The separately supplied local launcher sources Neil's existing `work/argus.env`; no keys are included here. The `.env.example` contains names only. If your file uses assignments without `export`, use `set -a` before sourcing and `set +a` afterwards.
 

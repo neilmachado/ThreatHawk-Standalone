@@ -16,6 +16,7 @@ dependencies = ["requests>=2.32,<3", "rich>=13,<15", "beautifulsoup4>=4.12,<5", 
 test = ["pytest>=8,<10"]
 
 [project.scripts]
+threathawk = "hawk.ui:main"
 threathawk-new = "hawk.ui:main"
 
 [tool.setuptools.packages.find]
