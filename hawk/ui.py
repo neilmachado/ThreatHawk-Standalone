@@ -1,11 +1,16 @@
 """Contextual terminal workflow; rendering never interprets remote markup."""
 import re
+import time
+from contextlib import nullcontext
+from rich import box
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 from .catalog import CATALOG, HINTS
 from .engine import Engine
+from .presentation import explain
+from .branding import show_logo
 from .network import LookupProblem
 
 DISCLAIMER = '''⚠️ WARNING: LEGAL DISCLAIMER
@@ -31,6 +36,8 @@ class Terminal:
         self.console = console or Console()
         self.read = read
         self.selected = None
+        self.completed = 0
+        self.last_duration = None
 
     def text(self, value):
         value = str(value)
@@ -43,8 +50,31 @@ class Terminal:
     def say(self, value):
         self.console.print(self.text(value))
 
+    def dashboard(self):
+        keys = {m.credential for m in CATALOG if m.credential}
+        configured = sum(bool(self.engine.credentials.get(k)) for k in keys)
+        banner = Text("T H R E A T H A W K", style="bold bright_cyan")
+        banner.append("\nTHREAT INTELLIGENCE CONSOLE  /  1.0.0", style="dim cyan")
+        banner.append("\nCreated and maintained by Neil Machado", style="white")
+        self.console.print(Panel(banner, border_style="bright_cyan", width=min(self.console.width,100), padding=(1,2)))
+        info = Text(f"22 MODULES   •   {configured}/{len(keys)} KEYS CONFIGURED   •   {self.completed} LOOKUPS COMPLETED", style="cyan")
+        info.append("\nKey presence only; provider access is checked when you run a lookup.", style="dim")
+        self.console.print(info)
+        selected = self.selected.title if self.selected else "Choose a module to begin"
+        self.console.print(Panel(self.text(selected), title="ACTIVE MODULE", border_style="magenta", width=min(self.console.width,100)))
+        choices = Text()
+        for number, label, description in (
+            (1,"View modules","Browse available capabilities"),
+            (2,"Select module","Choose an input and data source"),
+            (3,"Run module","Open the selected module"),
+            (4,"Exit","Close the console"),
+        ):
+            choices.append(f"{number}. {label}", style="bold bright_cyan")
+            choices.append(f"  —  {description}\n", style="white")
+        self.console.print(Panel(choices, title="CONTROL DESK", border_style="cyan", width=min(self.console.width,100)))
+
     def listing(self):
-        table = Table(title='Choose a capability', header_style='bold cyan')
+        table = Table(title='MODULE DIRECTORY', header_style='bold bright_cyan', border_style='cyan', box=box.SIMPLE_HEAD, row_styles=['','on #101a24'], width=min(self.console.width,120))
         for heading in ('No.', 'Module', 'Input', 'Source'):
             table.add_column(heading)
         for m in CATALOG:
@@ -55,18 +85,25 @@ class Terminal:
         m = self.selected
         label, example = HINTS[m.kind]
         key = 'Not required' if not m.credential else m.credential + (' — configured' if self.engine.credentials.get(m.credential) else ' — missing')
-        self.console.print(Panel(self.text(f'{m.number:02} · {m.title}\nSource: {m.source}\nRequired input: {label}\nExample: {example}\nAPI key: {key}'), border_style='#ff6037'))
+        self.console.print(Panel(self.text(f'{m.number:02} · {m.title}\nSource: {m.source}\nRequired input: {label}\nExample: {example}\nAPI key: {key}'), title='MODULE READY', border_style='bright_cyan', width=min(self.console.width,100)))
         if m.action == 'vt':
             self.say('VirusTotal documents that queried indicators may be scanned and added to its dataset. Do not query confidential indicators.')
         if m.kind == 'website':
             self.say('One page request only. Use a destination you are permitted to check.')
 
-    def results(self, finding):
-        self.say('Status: '+finding.state)
-        table = Table(header_style='bold cyan', expand=True)
+    def results(self, finding, technical=False):
+        status = Text(finding.state, style='bold cyan' if finding.state == 'Completed' else 'bold yellow')
+        if self.last_duration is not None:
+            status.append(f'  •  {self.last_duration:.1f}s', style='dim')
+        self.console.print(Panel(status, title='TECHNICAL DETAILS' if technical else 'LOOKUP RESULT', border_style='cyan', width=min(self.console.width,120)))
+        display = finding.data
+        if not technical and self.selected and finding.state in {'Completed','Decoded, not verified','Partial DNS response'}:
+            summary, display = explain(self.selected.action, finding.data)
+            self.say(summary)
+        table = Table(header_style='bold bright_cyan', border_style='cyan', box=box.SIMPLE_HEAD, row_styles=['','on #101a24'], expand=False, width=min(self.console.width,120))
         table.add_column('Field', ratio=1, overflow='fold')
         table.add_column('Observation', ratio=2, overflow='fold')
-        for count, (key, value) in enumerate(walk(finding.data)):
+        for count, (key, value) in enumerate(walk(display)):
             if count >= 500:
                 table.add_row('Display limit', 'Further rows omitted after 500 rows.')
                 break
@@ -80,9 +117,14 @@ class Terminal:
     def session(self):
         self.details()
         redirect = ''
+        last_result = None
         while True:
             hint = f'; r to request {redirect}' if redirect else ''
-            value = self.read(f'Input for {self.selected.title}{hint}; Enter for help; b home; q exit: ').strip()
+            value = self.read(f'Input for {self.selected.title}{hint}; d technical details; Enter help; b home; q exit: ').strip()
+            if value.lower() == 'd':
+                if last_result is not None: self.results(last_result, technical=True)
+                else: self.say('Run a lookup first to view its details.')
+                continue
             if value.lower() == 'q':
                 return False
             if value.lower() == 'b':
@@ -94,8 +136,16 @@ class Terminal:
             redirect = ''
             try:
                 self.say('Source: '+self.selected.source)
-                self.say('Running '+self.selected.title+'…')
-                result = self.engine.run(self.selected, value)
+                last_result = None
+                self.last_duration = None
+                started = time.monotonic()
+                progress = self.console.status(self.text('Looking up '+self.selected.title+'…'), spinner='dots', spinner_style='bright_cyan') if self.console.is_terminal else nullcontext()
+                with progress:
+                    result = self.engine.run(self.selected, value)
+                self.last_duration = time.monotonic() - started
+                if result.state in {'Completed', 'Decoded, not verified'}:
+                    self.completed += 1
+                last_result = result
                 self.results(result)
                 redirect = result.retry_origin
             except ValueError as error:
@@ -109,10 +159,10 @@ class Terminal:
 
     def run(self):
         self.console.print(Panel(self.text(DISCLAIMER), border_style='yellow'))
-        self.say('THREATHAWK  1.0.0 · Standalone edition\nCreated and maintained by Neil Machado\n22 guided capabilities')
+        show_logo(self.console)
         try:
             while True:
-                self.console.print(Panel('1. View modules\n2. Select module\n3. Run module\n4. Exit', title='ThreatHawk', border_style='#ff6037', expand=False))
+                self.dashboard()
                 choice = self.read('Choose 1–4: ').strip()
                 if choice == '4':
                     break

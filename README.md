@@ -26,6 +26,10 @@ You can also run `threathawk-new` or `python -m hawk`. All three commands launch
 
 The application reads environment variables. It does not copy or auto-execute configuration files. The separately supplied local launcher reads your private environment file; no keys are included here. The `.env.example` contains names only. If your file uses assignments without `export`, use `set -a` before sourcing and `set +a` afterwards.
 
+## Interface
+
+The terminal dashboard shows the active module, configured-key count and completed lookups. Cyan and magenta panels separate navigation and results. A live spinner appears during interactive lookups, followed by elapsed time. Key presence is not proof of provider access. Optional portrait artwork can be configured locally with `THREATHAWK_LOGO`; personal artwork is not included in the distribution.
+
 ## Workflow
 
 1. **View modules** — browse the numbered catalog.
@@ -33,7 +37,7 @@ The application reads environment variables. It does not copy or auto-execute co
 3. **Run module** — return to the selected module's input prompt.
 4. **Exit**.
 
-Inside a module, type a domain, IP, website origin, JWT or hash as indicated. Enter shows guidance, `b` returns home and `q` exits. After a same-site HTTPS/`www` redirect, `r` makes a separate request only when explicitly entered. Results appear as labeled terminal tables. Empty collections, incomplete queries, provider errors and unavailable pages are distinguished.
+Inside a module, type a domain, IP, website origin, JWT or hash as indicated. Enter shows guidance, `b` returns home and `q` exits. After a same-site HTTPS/`www` redirect, `r` makes a separate request only when explicitly entered. Results begin with a plain-language explanation and selected findings. Type `d` after a lookup for the full technical response, without repeating the request. Tables are limited to 120 columns for readability. Empty collections, incomplete queries, provider errors and unavailable pages are distinguished.
 
 Display is limited to 500 rows, 4,000 characters per field and 12 nested levels, with omission notices. No result files or application run logs are written. Shell history, terminal capture and service logs are outside the application's control.
 
