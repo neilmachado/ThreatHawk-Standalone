@@ -1,5 +1,7 @@
 # ThreatHawk — Standalone Edition
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-FF6037.svg)](LICENSE)
+
 Created and maintained by **Neil Machado**.
 A guided terminal toolkit for indicator research, DNS records, offline JWT inspection and bounded website observations. Version 1.0.0 provides 22 numbered capabilities.
 
